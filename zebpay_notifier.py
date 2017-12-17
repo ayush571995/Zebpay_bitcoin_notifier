@@ -12,7 +12,7 @@ while True:
     if abs(d['buy']-prices[0])>=1000 and prices[0]>d['buy']:
         n = notify2.Notification('Up-By '+str(prices[0]-d['buy']),'Buy rate :'+str(prices[0])+'\nSell rate :'+str(prices[1]),'/pathto/green.ico')
         n.show()
-    else:
+    elif abs(d['buy']-prices[0])>=1000 and prices[0]<d['buy']:
         n = notify2.Notification('Down-By ' + str(d['buy']-prices[0]), 'Buy rate :'+str(prices[0]) + '\nSell rate :' + str(prices[1]), '/pathto/red.ico')
         n.show()
     d['buy']=prices[0]
