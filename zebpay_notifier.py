@@ -1,23 +1,41 @@
 from time import sleep
-import requests,re,notify2
+import requests,json,notify2
 
-regex=re.compile('\d+.\d+')
 URL = 'https://www.zebapi.com/api/v1/market/ticker/btc/inr'
 r = requests.get(URL)
 d={'buy':0,'sell':0}
-up = 1000    #Rate by which if value changes you willbe notified
 notify2.init('Test')
+prices = json.loads(r.text)
+d['buy'] = prices['buy']
+d['sell'] = prices['sell']
+n = notify2.Notification('Price-Alert','Buy rate :' + str(d['buy']) + '\nSell rate :' + str(d['sell']))
+n.show()
+sleep(15)
+
 while True:
-    prices = list(map(float,regex.findall(r.text)))[1:3]
-    if abs(d['buy']-prices[0])>=1000 and prices[0]>d['buy']:
-        n = notify2.Notification('Up-By '+str(prices[0]-d['buy']),'Buy rate :'+str(prices[0])+'\nSell rate :'+str(prices[1]),'/pathto/green.ico')
-        n.show()
-    elif abs(d['buy']-prices[0])>=1000 and prices[0]<d['buy']:
-        n = notify2.Notification('Down-By ' + str(d['buy']-prices[0]), 'Buy rate :'+str(prices[0]) + '\nSell rate :' + str(prices[1]), '/pathto/red.ico')
-        n.show()
-    d['buy']=prices[0]
-    d['sell']=prices[1]
+    new_price = json.loads(requests.get(URL).text)
+    if new_price['buy']>d['buy']:
+        notify2.Notification('Buy rate Up by ' + str(new_price['buy'] - d['buy']),
+                                 'Buy rate :' + str(new_price['buy']) + '\nSell rate :' + str(new_price['sell'])).show()
+
+    elif new_price['sell']>d['sell']:
+        notify2.Notification('Sell rate Up by ' + str(new_price['sell'] - d['sell']),
+                                 'Buy rate :' + str(new_price['buy']) + '\nSell rate :' + str(new_price['sell'])).show()
+    elif new_price['buy']<d['buy']:
+        notify2.Notification('Buy rate Down-By ' + str(d['buy']-new_price['buy']),
+                                 'Buy rate :' + str(new_price['buy']) + '\nSell rate :' + str(new_price['sell'])).show()
+    elif new_price['sell']<d['sell']:
+        notify2.Notification('Sell rate Down-By ' + str(d['sell'] - new_price['sell']),
+                                 'Buy rate :' + str(new_price['buy']) + '\nSell rate :' + str(new_price['sell'])).show()
+    elif new_price['buy']>d['buy'] and new_price['sell']>d['sell']:
+        notify2.Notification('Buy and Sell rate Up ' ,
+                                 'Buy rate :' +str(d['buy'])+'------>'+ str(new_price['buy']) + '\nSell rate :' +str(d['sell'])+'------>'+ str(new_price['sell'])).show()
+    elif new_price['buy']<d['buy'] and new_price['sell']<d['sell']:
+        notify2.Notification('Buy and Sell rate down' ,
+                                 'Buy rate :' +str(d['buy'])+'------>'+ str(new_price['buy']) + '\nSell rate :' +str(d['sell'])+'------>'+ str(new_price['sell'])).show()
+    d=new_price
     sleep(60)
-    r = requests.get(URL)
+
+
 
 
